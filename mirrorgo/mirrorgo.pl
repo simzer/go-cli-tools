@@ -65,7 +65,18 @@ while(<STDIN>)
   {
     my ($command, $args) = ($1, $2);
     if      ($command eq "list_commands") {
-      response($id,"name\nversion\nquit\nlist_commands\nboardsize\nclear_board\nplay\ngenmove");
+      response($id,<<LIST);
+name
+version
+quit
+list_commands
+boardsize
+clear_board
+play
+genmove
+set_free_handicap
+place_free_handicap
+LIST
     } elsif ($command eq "name") {
       response($id,"mirrorgo");
     } elsif ($command eq "version") {
@@ -84,6 +95,23 @@ while(<STDIN>)
     } elsif ($command eq "play") {
       if($args =~ /\s*(B|W|black|white)\s+(\w\d+|pass|resign)\s*/i) { $move = $2; }
       else { warning($id,"play syntax not recognized."); }      
+      response($id,"");
+    } elsif ($command eq "place_free_handicap") {
+      if($args =~ /\s*(\d+)\s*/i) { 
+        $handicap = $1;
+        @handicaps = qw(k10 d16 q4 d4 q16 d10 q10 k16 k4);
+        for(@handicaps[0..($handicap-1)]) {
+          my ($col,$row) = processMove($move);
+          $table->[$col][$row] = 1;
+        }
+        response($id,join(" ",@handicaps[0..($handicap-1)]));
+      } else { warning($id,"boardsize not recognized."); }
+    } elsif ($command eq "set_free_handicap") {
+      while($args =~ s/(\w\d+)//i) {
+        $move = $1;
+        ($col,$row) = processMove($move);
+        $table->[$col][$row] = 1;        
+      }        
       response($id,"");
     } elsif ($command eq "genmove") {
       if($move eq "pass") { response($id,"pass"); }
