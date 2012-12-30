@@ -51,6 +51,17 @@ sub cleartable {
   }
 }
 
+sub validmove {
+  my ($table, $col, $row) = @_;
+  if ($table->[$col][$row] != 0) { return (0); }
+#  if (  ($table->[$col-1][$row] == -1) 
+#      &&($table->[$col+1][$row] == -1) 
+#      &&($table->[$col][$row-1] == -1) 
+#      &&($table->[$col][$row+1] == -1)  )
+#  { return (0); }
+  return(1);
+}
+
 my $boardsize = 19;
 my $move = "";
 my $row = -1;
@@ -110,7 +121,7 @@ LIST
       while($args =~ s/(\w\d+)//i) {
         $move = $1;
         ($col,$row) = processMove($move);
-        $table->[$col][$row] = 1;        
+        $table->[$col][$row] = -1;        
       }        
       response($id,"");
     } elsif ($command eq "genmove") {
@@ -119,16 +130,17 @@ LIST
       elsif($move eq "") { response($id,"k10"); }
       else {
         ($col,$row) = processMove($move);
-        $table->[$col][$row] = 1;
+        $table->[$col][$row] = -1;
         if (($row == 10) && ($col == 10)) { response($id,"pass"); }
         else {
           $col = 20 - $col;
           $row = 20 - $row;
-          if ($table->[$col][$row] == 1) { response($id,"pass"); }
-          else {
+          if (validmove($table,$col,$row)) {
             $table->[$col][$row] = 1;
             response($id,genMove($col, $row)); 
-          }            
+          } else {
+            response($id,"pass"); 
+          }
         }              
       }       
     } else {
